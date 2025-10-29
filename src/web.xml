@@ -4,6 +4,11 @@
 </servlet>
 <servlet>
 
+<servlet-mapping>
+<servlet-name>RegistrationServlet</servlet-name>
+<url-pattern>/register</url-pattern>
+</servlet-mapping>
+
 <dependancy>
 	<groupId>javax.servlet</groupId>
 	<artifactId>javax.servlet-api</artifactId>
