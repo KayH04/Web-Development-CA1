@@ -25,11 +25,24 @@ public class LoginServlet {
 		if(password.equals(password) && gamerTag.equals(gamerTag)) {
 			PreparedStatement pstmt = connection.prepareStatement
 					("SELECT password, gameTag, points FROM users");
+			
+			pstmt.setString(1, gamerTag);
+			pstmt.setString(2, password);
+			ResultSet result = pstmt.executeQuery();
+			
+		if(result.next()) {
+			HttpSession session = request.getSession();
+			session.setAttribute("gamerTag", gamerTag);
+			session.setAttribute("points", result.getInt("points"));
+			response.sendRedirect("index.html");
+		}
 		}
 				
 		
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
+		
+		
 	}
 
 }
