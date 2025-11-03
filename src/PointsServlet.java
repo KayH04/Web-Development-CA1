@@ -13,11 +13,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+//MANAGES PLAYERS POINT SIN THE GAMING PORTAL
 
 public class PointsServlet extends HttpServlet{
 	
 	private Connection connection;
 	
+	//INIT() CREATES DATABSE CONNECTION 
 		public void init() throws ServletException{
 			try {
 				connection = DriverManager.getConnection(
@@ -25,7 +27,6 @@ public class PointsServlet extends HttpServlet{
 			} catch (SQLException e) {
 				throw new ServletException("Database connection error", e);
 			
-		
 			}
 		}
 	
@@ -37,31 +38,46 @@ public class PointsServlet extends HttpServlet{
 			response.sendRedirect("login.html");
 			return;
 		}
-		String gamerTag;
-		String password;
-		int points;
-		int purchaseAmount;
 		
+		//RETRIEVES USERS GAMERTAG FROM SESSION 
+		String gamerTag = (String) session.getAttribute("gamerTag");
 		
+		//TRANSACTION DETAILS FROM FORM SUBMISSION 
+		String action = request.getParameter("action");
+		int points = Integer.parseInt(request.getParameter("points"));
+		int purchaseAmount = Integer.parseInt(request.getParameter("purchaseAmount"));
 		
-		PreparedStatement pstmt = connection.prepareStatement(
-				"SELECT points, gamerTag FROM users");
+		PreparedStatement pstmt = null;
+		ResultSet result = null;
 		
-	if(points > purchaseAmount) {
+		try {
+		//GET USERS CURRENT POINTS FROM DATABASE
+		String selectSql ="SELECT points, gamerTag FROM users WHERE gamerTag = ?";
+		pstmt = connection.prepareStatement(selectSql);
+		pstmt.setString(1,  gamerTag);
+		result = pstmt.executeQuery();
+		
+		int currentPoints = result.getInt("points");
+		int newPoints = currentPoints;
+		
+	if(currentPoints > purchaseAmount) { //CALCULATE NEW POINTS AFTER TRANSACTION
+		newPoints = currentPoints - purchaseAmount;
 		
 		PreparedStatement update = connection.prepareStatement(
-				"UPDATE users SET points =?");
-	} else {
+				"UPDATE users SET points =? WHERE gamerTag =?");
+	} else {// IF BALANCE GOES BELOW 0 SHOW ERROR
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
 		out.println("Error! the purchase amount will send your balance below 0 points");
 	}
+
+	} catch(SQLException e) {
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
 		out.println("<html><body>");
 		out.println("<p>Welcome back"+ gamerTag + "</p>");
 		out.println("<p>You have :<b>" + points + "</b> points</p>");
-		
 	}
 		
+}
 }
